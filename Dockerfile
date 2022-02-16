@@ -4,7 +4,7 @@ WORKDIR /usr/src/qrls
 
 COPY package*.json ./
 
-RUN npm install
+RUN yarn install
 
 # FOR PRODUCTION
 # RUN npm install --only=production

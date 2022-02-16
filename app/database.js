@@ -5,10 +5,14 @@ const moment = require('moment');
 const connection = mysql.createConnection({
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
-    user: process.env.DB_USER,
+    user: process.env.DB_USERNAME,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_DATABASE
 });
+
+// Create table if missing
+console.log("Creating table if missing")
+connection.query('CREATE TABLE IF NOT EXISTS `attendance_record` (`attendance_id` int NOT NULL AUTO_INCREMENT, `full_name` mediumtext NOT NULL, `registered` tinyint(1) NOT NULL, `arrival_date` date NOT NULL, `arrival_time` time NOT NULL, PRIMARY KEY (`attendance_id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci')
 
 const addAttendance = (name, member) => new Promise((resolve, reject) => {
     // Quest the database inserting a new row for today with the name

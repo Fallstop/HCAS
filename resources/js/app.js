@@ -5,10 +5,8 @@ const $types = document.getElementById('types');
 const $pages = document.getElementById('pages');
 const $loader = document.getElementById('loader');
 
-const $guestName = document.getElementById('guestName');
 const $memberName = document.getElementById('memberName');
 
-const $guestSubmit = document.getElementById('guestSubmit');
 const $memberSubmit = document.getElementById('memberSubmit');
 
 const $membersList = document.getElementById('membersList');
@@ -306,7 +304,7 @@ function toPage(id) {
     resetTimeout(); // Clear the current timeout (we dont want to reset the page right after opening it)
     // Disable all type buttons so we cant accidentally tab select them
     elements('.member-types__type', element => element.disabled = true);
-    $types.classList.add('member-types--hidden'); // Hide the types page so it goes out of view
+    $types.classList.remove('member-types--hidden'); // Hide the types page so it goes out of view
     $pages.classList.remove('sign-pages--hidden'); // Show the sign-in page so that its visible
     // Get the current page via its id
     const currentPage = document.querySelector('.sign-pages__page[page-id="' + id + '"]');
@@ -314,8 +312,6 @@ function toPage(id) {
     nonNull(currentPage, element => element.classList.remove('sign-pages__page--hidden'));
     if (id === 'member') { // If we are selecting the member page
         $memberName.focus(); // Focus the member input
-    } else { // Otherwise
-        $guestName.focus(); // Focus the guest input
     }
 }
 
@@ -329,34 +325,19 @@ function resetPage() {
     // Enables all the type buttons again so they can be pushed
     elements('.member-types__type', element => element.disabled = false);
     $types.classList.remove('member-types--hidden'); // Show the tpyes page so it comes into view
-    $pages.classList.add('sign-pages--hidden'); // Hide the sign-in page so it goes out of view
-    elements('.sign-pages__page', element => element.classList.add('sign-pages__page--hidden')); // Hide all sign-in pages
+    $pages.classList.remove('sign-pages--hidden'); // Hide the sign-in page so it goes out of view
     clearHash(); // Clear the window hash so that the next user will always get the home page
-    $guestName.value = ''; // Clear the guest name input
     $memberName.value = '';  // Clear the member name input
-    elements('.members__list__item', e => e.checked = false); // Uncheck all the members radio buttons
+    elements('.members__list__item__button', e => e.checked = false); // Uncheck all the members radio buttons
+    elements('.members__list__item', e => e.classList.remove("members__list__item--selected")); // Uncheck all the members radio buttons
+
     selectedMember = null; // Set the selected member to done
-    $guestSubmit.disabled = true; // Disable the guest submit button
     $memberSubmit.disabled = true; // Disable the member submit button
     removeChildren($membersList); // Remove all the members list children
     $memberName.blur(); // Take the member name input out of focus
-    $guestName.blur(); // Take the guest name input out of focus
+    fillMembersList(); // Fill the members list with the current members
 }
 
-/**
- *  SetCacheBadge - Changes the visibility of the "Cached" badge in the
- *  top corner of the screen indicating if the response is cached or not
- *
- *  @param cached Whether or not the list is cached
- */
-function setCacheBadge(cached) {
-    const $cacheIndicator = document.getElementById('cacheIndicator');
-    if (cached) {
-        $cacheIndicator.classList.remove('cache-indicator--hidden');
-    } else {
-        $cacheIndicator.classList.add('cache-indicator--hidden');
-    }
-}
 
 // Add the functionality for the back button
 nonNull(document.getElementById('signBack'), element => element.onclick = () => resetPage());
@@ -384,6 +365,7 @@ const LOAD_RETRY_DELAY = 2 * 1000; // The time before attempting to load the mem
  *  badge when done
  */
 function loadMembers() {
+    console.log("LOADING")
     // Display the loader so the user knows whats happening
     showLoader();
     // A Function that is called if we failed
@@ -394,26 +376,49 @@ function loadMembers() {
         }, LOAD_RETRY_DELAY);
     }
     // Ajax request to /members the backend endpoint for the members list
-    get('/members', (err, res) => {
-        if (err != null) {
-            fail(err); // Warn the user
+    get('/members', (err_m, res_m) => {
+        if (err_m != null) {
+            fail(err_m); // Warn the user
         } else {
-            if (!res.hasOwnProperty('status')) { // If the request is missing a status
+            if (!res_m.hasOwnProperty('status')) { // If the request is missing a status
                 fail('Malformed Server Response status missing'); // Warn the user
             } else { // Otherwise
-                if (res.status === 'success'
-                    && res.hasOwnProperty("members")
-                    && res.hasOwnProperty("cached")
+                if (res_m.status === 'success'
+                    && res_m.hasOwnProperty("members")
+                    && res_m.hasOwnProperty("cached")
                 ) { // Make sure the request has all the required data
-                    members = res.members;
-                    setCacheBadge(res.cached); // Set the cache badge
+                    get('/attendance', (err_a, res_a) => {
+                        if (err_a != null) {
+                            fail(err_a); // Warn the user
+                        } else {
+                            if (!res_a.hasOwnProperty('status')) { // If the request is missing a status
+                                fail('Malformed Server Response status missing'); // Warn the user
+                            } else { // Otherwise
+                                if (res_a.status === 'success'
+                                    && res_a.hasOwnProperty("members")
+                                    && res_a.hasOwnProperty("cached")
+                                ) { // Make sure the request has all the required data
+                                    let tempMembers = res_m.members;
+                                    let simplifiedAttendance = res_a.members.map((x)=>x.name)
+
+                                    members = tempMembers.filter((x)=>!simplifiedAttendance.includes(x));
+
+
+                                } else {
+                                    fail('Malformed Server Response'); // Warn the user
+                                }
+                            }
+                            hideLoader(); // Always hide the loader
+                            fillMembersList(); // Fill the members list with the current members
+
+                        }
+                
+                    })
                 } else {
                     fail('Malformed Server Response'); // Warn the user
                 }
             }
         }
-        // Always hide the loader
-        hideLoader();
     })
 }
 
@@ -437,7 +442,7 @@ function loadMembers() {
 function getRelevantMembers(query) {
     // If the query is null we ignore everyone
     if (query == null) {
-        return []; // Return an empty array
+        return members.sort();
     }
     query = query.toLowerCase(); // The lowercase query
     const matching = []; // The matching results
@@ -474,7 +479,6 @@ function getRelevantMembers(query) {
  *  @param query The name search query
  */
 function fillMembersList(query = null) {
-    if (query == null || query.length === 0) query = null; // If the query is empty we just make it null
     const members = getRelevantMembers(query); // Get the members relevant to the search
     removeChildren($membersList); // Remove all the members list children
     let tabIndex = 5; // The current page tab index
@@ -620,30 +624,6 @@ nonNull($memberName, element => {
     }
 });
 
-// Make sure the guest name input is not null
-nonNull($guestName, element => {
-    // When a key is pressed on the guest name input
-    element.onkeyup = event => {
-        if (isEnterKey(event)) { // If the pressed key was enter
-            triggerClick($guestSubmit); // Click the guest submit button
-        }
-        resetTimeout(); // Make sure we don't timeout when typing
-        $guestSubmit.disabled = element.value.length < 1; // Set the submit button to disable if there is no name
-    }
-});
-
-// Make sure the guest submit button is not null
-nonNull($guestSubmit, element => {
-    // When the guest submit button is clicked
-    element.onclick = () => {
-        const name = $guestName.value; // Get the guest name
-        if (name != null && name.length > 0) {
-            // Save the attendance
-            saveAttendance(name, false);
-        }
-    }
-})
-
 /**
  *  SaveAttendance - Sends a post request to the backend saving the
  *  attendance for the provided name and setting guest based on the
@@ -672,6 +652,7 @@ function saveAttendance(name, member) {
                             showToast('Reverted attendance for "' + name + '"'); // Show a toast telling the user its been reverted
                         });
                     });
+                    loadMembers()
                     // Take the user back to the main page
                     resetPage();
                 } else {
@@ -727,12 +708,11 @@ function removeAttendance(name, callback) {
 elements('.attendance__list__item__buttons__button', element => element.onclick = () => { // When the element is clicked
     const name = element.getAttribute('data-name'); // Get the name attribute
     if (name !== undefined && name !== null) { // If there is a name attribute
-        if (confirm('Are you sure you want to remove the attendance for "' + name + '"')) { // Confirm the user wants to remove it
-            removeAttendance(name, () => { // Remove the attendance
-                const parent = element.parentElement.parentElement; // Get the root element
-                const listItem = parent.parentElement; // Get its parent
-                listItem.removeChild(parent); // Remove the element using its parent
-            });
-        }
+        removeAttendance(name, () => { // Remove the attendance
+            const parent = element.parentElement.parentElement; // Get the root element
+            const listItem = parent.parentElement; // Get its parent
+            listItem.removeChild(parent); // Remove the element using its parent
+        });
+
     }
 });

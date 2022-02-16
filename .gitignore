@@ -30,3 +30,5 @@ app/data/
 
 docker
 /docker/
+
+.sass-cache

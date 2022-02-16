@@ -8,7 +8,8 @@
     "compileCSS": "sass resources/css/app.scss public/css/app.css",
     "minifyCSS": "csso -i public/css/app.css -o public/css/app.min.css",
     "compileJS": "babel resources/js/app.js --out-dir public/js --source-maps --presets @babel/env",
-    "minifyJS": "uglifyjs public/js/app.js -o public/js/app.min.js -c -m"
+    "minifyJS": "uglifyjs public/js/app.js -o public/js/app.min.js -c -m",
+    "dev": "nodemon --watch ./app ./resources --exec 'yarn run build && echo \"http://localhost:3000\" && yarn run start'"
   },
   "dependencies": {
     "@babel/preset-env": "^7.13.15",
@@ -23,8 +24,10 @@
     "mysql2": "^2.2.5"
   },
   "devDependencies": {
-    "modern-normalize": "^1.0.0",
     "@babel/cli": "^7.13.14",
-    "@babel/core": "^7.13.15"
+    "@babel/core": "^7.13.15",
+    "csso-cli": "^3.0.0",
+    "modern-normalize": "^1.0.0",
+    "nodemon": "^2.0.15"
   }
 }

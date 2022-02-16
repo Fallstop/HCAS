@@ -50,9 +50,9 @@ body {
   text-align: center;
 
   &__logo {
-    height: 200px;
+    height: 10em;
     width: auto;
-    margin: 1em auto;
+    margin: 0 auto;
 
     &--small {
       max-height: 150px;
@@ -65,7 +65,7 @@ body {
     font-size: 1.2em;
     line-height: 1.25;
     max-width: 500px;
-    margin: 2em auto;
+    margin: 0 auto 2em auto;
   }
 }
 
@@ -247,6 +247,8 @@ body {
     display: block;
     padding: 1em;
     color: #9c9c9c;
+    cursor: pointer;
+
 
     &__button {
       opacity: 0;
@@ -380,23 +382,6 @@ body {
   }
 }
 
-.cache-indicator {
-  position: fixed;
-  top: 0;
-  right: 0;
-  padding: 1em 2em;
-  background-color: $secondary;
-  color: white;
-  font-weight: bold;
-  text-transform: uppercase;
-  font-size: 0.9em;
-  letter-spacing: 0.1em;
-
-  &--hidden {
-    display: none;
-  }
-}
-
 .attendance__date {
 
   &__label {
@@ -410,6 +395,9 @@ body {
 
     &::-webkit-calendar-picker-indicator {
       filter: invert(1);
+    }
+    &::-webkit-datetime-edit {
+      width: 100%;
     }
   }
 

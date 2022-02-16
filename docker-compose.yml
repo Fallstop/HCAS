@@ -2,32 +2,32 @@
 version: '3.7'
 # App networking
 # We use a bridge network to connect the parts
-networks:
-  qrls:
-    driver: bridge
+# networks:
+#   qrls:
+#     driver: bridge
 # App Services
 services:
   # The Node server
-  web:
-    # Build our docker image
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: qrls-app
-    restart: unless-stopped
-    container_name: qrls-web
-    ports:
-      # Bind the port in the .env
-      - ${PORT}:${PORT}
-    expose:
-      # Expose the port in the .env
-      - ${PORT}
-    volumes:
-      - .:/usr/src/qrls
-    networks:
-      - qrls
-    depends_on:
-      - db
+  # web:
+  #   # Build our docker image
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   image: qrls-app
+  #   restart: unless-stopped
+  #   container_name: qrls-web
+  #   ports:
+  #     # Bind the port in the .env
+  #     - ${PORT}:${PORT}
+  #   expose:
+  #     # Expose the port in the .env
+  #     - ${PORT}
+  #   volumes:
+  #     - .:/usr/src/qrls
+  #   networks:
+  #     - qrls
+  #   depends_on:
+  #     - db
   # The MySQL database
   db:
     image: mysql:5.7
@@ -40,7 +40,9 @@ services:
       MYSQL_USER: ${DB_USERNAME}
       SERVICE_TAGS: dev
       SERVICE_NAME: mysql
+    ports:
+      - 3306:3306
     volumes:
       - ./docker-compose/mysql:/docker-entrypoint-initdb.d
-    networks:
-      - qrls
+    # networks:
+    #   - qrls

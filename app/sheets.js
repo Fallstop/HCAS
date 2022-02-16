@@ -183,19 +183,12 @@ const getNameList = () => new Promise(resolve => {
             fromCache();
         } else {
             authorize().then(jwtClient => {
-                const facilitatorsPromise = fetchGoogleSheet(
-                    jwtClient,
-                    process.env.FACILITATORS_SHEET_ID,
-                    process.env.FACILITATORS_RANGE_NAME
-                );
                 const youthPromise = fetchGoogleSheet(
                     jwtClient,
                     process.env.YOUTH_SHEET_ID,
                     process.env.YOUTH_RANGE_NAME
                 );
-                Promise.all([facilitatorsPromise, youthPromise]).then(values => {
-                    let responses = [];
-                    values.forEach(value => responses = responses.concat(value));
+                Promise.resolve(youthPromise).then(responses => {
                     if (responses.length > 0) {
                         saveCache(responses);
                     }

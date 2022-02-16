@@ -27,6 +27,20 @@ module.exports = (app, database) => {
         });
     });
 
+    app.get('/attendance', (req, res) => {
+        let date = req.query.date; // Get the date provided via the request query (can be undefined)
+        if (date && date.match(/[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}/)) date = moment(date); // Get the moment representation of the date;
+        else date = moment(); // If we aren't given a date just use the current one
+        const dateFormat = 'YYYY-MM-DD'; // The date format used in HTML
+        database.getAttending(date).then(data => {
+            res.json({
+                status: "success",
+                members: data,
+                cached: false
+            });
+        })
+    })
+
     // Handle GET requests to /attending
     app.get('/attending', (req, res) => {
         let date = req.query.date; // Get the date provided via the request query (can be undefined)
