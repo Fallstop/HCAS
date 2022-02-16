@@ -1,11 +1,15 @@
-# 👾 QRLS
+# 👾 HCAS
 
-QRLS (Questionable Research Labs Sign-on)
+HCAS (Huanui College Actvity Sign-on)
 
 ![ForTheBadge built-with-love](http://ForTheBadge.com/images/badges/built-with-love.svg)
 
-This is the new application for Questionable Research Labs which is both a sign-in kiosk and a manager for the current
-day attendance
+This is a fork of the old [jacobtreed/QRLS](https://github.com/jacobtread/QRL-App), to produce something with little value at all.
+
+## Fork Changes
+ - Only member sign-in
+ - Rebrand
+ - Not much really
 
 ## 📦 Docker
 
